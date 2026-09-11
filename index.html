@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NIKH,S STATION PS1 — Retro Lofi 32-Bit PlayStation Lounge</title>
+  <meta name="description" content="Step into NIKH,S STATION PS1. Play legendary PlayStation 1 classics in a nostalgic retro lofi aesthetic with controller and touch controls." />
+
+  <!-- Cross-Origin Isolation Service Worker for GitHub Pages (enables SharedArrayBuffer & WebAssembly) -->
+  <script src="coi-serviceworker.min.js"></script>
+
+  <!-- Preconnect for Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    /* Inline overrides for retro lofi touches */
+    .hero-badge-glow {
+      animation: badge-glow 2.5s ease-in-out infinite;
+    }
+    @keyframes badge-glow {
+      0%, 100% { box-shadow: 0 0 10px rgba(157,78,221,0.3); }
+      50% { box-shadow: 0 0 25px rgba(244,114,182,0.5), 0 0 50px rgba(56,189,248,0.3); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ───────────────────────────────────────────────── -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-logo">
+    <div class="nav-logo-icon" aria-hidden="true">PS</div>
+    <div style="display:flex;flex-direction:column;line-height:1.1">
+      <span class="nav-logo-text" style="font-weight:900;letter-spacing:0.04em">NIKH,S STATION PS1</span>
+      <span class="retro-kana-badge" style="padding:1px 6px;font-size:0.6rem;margin-top:2px">
+        ニキ・ステーション <span class="ps-shapes-accent"><span class="ps-tri">△</span><span class="ps-cir">○</span><span class="ps-cro">✕</span><span class="ps-squ">□</span></span>
+      </span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="btn-lofi-radio" id="btn-lofi-radio" title="Play Ambient Lo-Fi Chill Beats">
+      <span class="cassette-icon">📼</span>
+      <span id="lofi-radio-text">Lofi Beats</span>
+    </button>
+    <button class="btn-crt-toggle" id="btn-crt-toggle" title="Toggle CRT Scanline Effect">
+      <span>📺</span>
+      <span id="crt-toggle-text">CRT: ON</span>
+    </button>
+    <div id="controller-badge" class="controller-badge" aria-live="polite" aria-label="Controller status">
+      <span class="dot"></span>
+      <span>🎮 No Controller</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Main Content ──────────────────────────────────────────────── -->
+<main>
+
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container">
+      <div class="hero-eyebrow hero-badge-glow" aria-label="Category" style="background:rgba(20,14,38,0.85);border-color:rgba(199,125,255,0.4)">
+        <span>🥋</span>
+        <span>32-BIT RETRO LOFI LOUNGE • ニキ・ステーション PS1</span>
+        <span class="ps-shapes-accent" style="margin-left:4px"><span class="ps-tri">△</span><span class="ps-cir">○</span><span class="ps-cro">✕</span><span class="ps-squ">□</span></span>
+      </div>
+
+      <h1 class="hero-title" id="hero-title" style="letter-spacing:0.02em">
+        NIKH,S STATION <span class="gradient-text">PS1</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Step into the twilight ninja realm. Play legendary PlayStation classics directly in your browser —
+        surrounded by nostalgic lofi chill vibes. Full support for USB controllers, Bluetooth gamepads, and on-screen Android touch controls.
+      </p>
+
+      <div class="hero-cta">
+        <a href="#library" class="btn btn-primary" aria-label="Explore games library">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Play Built-in Games
+        </a>
+        <button class="btn btn-secondary" id="hero-upload-btn" aria-label="Upload a ROM file">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Upload My ROM
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Pills -->
+  <div style="padding:0 0 48px;position:relative;z-index:1">
+    <div class="container">
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:999px;background:rgba(18,13,34,0.85);border:1px solid rgba(199,125,255,0.25);font-size:0.8rem;color:#cbd5e1;backdrop-filter:blur(8px)">
+          <span>🥋</span><span>Dual Ninja Twilight Vibe</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:999px;background:rgba(18,13,34,0.85);border:1px solid rgba(56,189,248,0.25);font-size:0.8rem;color:#cbd5e1;backdrop-filter:blur(8px)">
+          <span>🎮</span><span>DualShock &amp; Android Touch</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:999px;background:rgba(18,13,34,0.85);border:1px solid rgba(244,114,182,0.25);font-size:0.8rem;color:#cbd5e1;backdrop-filter:blur(8px)">
+          <span>⚡</span><span>60 FPS WebAssembly Core</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:999px;background:rgba(18,13,34,0.85);border:1px solid rgba(251,191,36,0.25);font-size:0.8rem;color:#cbd5e1;backdrop-filter:blur(8px)">
+          <span>💾</span><span>Memory Card Save States</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:999px;background:rgba(18,13,34,0.85);border:1px solid rgba(16,185,129,0.25);font-size:0.8rem;color:#cbd5e1;backdrop-filter:blur(8px)">
+          <span>📼</span><span>Lofi Chill Lounge</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Zone -->
+  <section class="upload-section" aria-labelledby="upload-heading">
+    <div class="container">
+      <div class="upload-zone" id="upload-zone" role="button" tabindex="0"
+        aria-label="Upload ROM file by clicking or dragging"
+        onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('rom-file-input').click()">
+
+        <div class="upload-icon" aria-hidden="true">📀</div>
+
+        <h2 class="upload-title" id="upload-heading">Drop your PS1 ROM here</h2>
+        <p class="upload-subtitle">Single file or an entire game folder (multi-BIN / CUE)</p>
+
+        <div class="upload-actions">
+          <button class="btn btn-primary" id="file-upload-btn"
+            aria-label="Browse for a single ROM file">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Upload File
+          </button>
+          <button class="btn btn-folder" id="folder-upload-btn"
+            aria-label="Upload a game folder with .cue and .bin files">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            Upload Folder
+            <span class="folder-badge">multi-BIN</span>
+          </button>
+        </div>
+
+        <div class="upload-formats" aria-label="Supported formats">
+          <span class="format-tag">.BIN</span>
+          <span class="format-tag">.CUE</span>
+          <span class="format-tag">.ISO</span>
+          <span class="format-tag">.PBP</span>
+          <span class="format-tag">.CHD</span>
+          <span class="format-tag">.IMG</span>
+        </div>
+        <p style="font-size:0.72rem;color:#334155;margin-top:10px">
+          💡 For multi-disc games: select the whole game folder containing the <code style="color:#64748b">.cue</code> + all <code style="color:#64748b">.bin</code> files
+        </p>
+
+        <input type="file" id="rom-file-input" accept=".bin,.cue,.iso,.pbp,.chd,.img,.mdf"
+          multiple style="display:none" aria-label="ROM file input" />
+        <input type="file" id="rom-folder-input" webkitdirectory multiple
+          style="display:none" aria-label="ROM folder input" />
+      </div>
+
+      <!-- BIOS Panel -->
+      <div class="bios-panel">
+        <button class="bios-toggle" id="bios-toggle" aria-expanded="false" aria-controls="bios-content">
+          <span style="display:flex;align-items:center;gap:8px">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="8" rx="2"/>
+              <rect x="2" y="14" width="20" height="8" rx="2"/>
+              <line x1="6" y1="6" x2="6.01" y2="6"/>
+              <line x1="6" y1="18" x2="6.01" y2="18"/>
+            </svg>
+            <span>BIOS File (optional — required for some games)</span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="bios-content" id="bios-content" role="region" aria-label="BIOS upload">
+          <p style="font-size:0.82rem;color:#64748b;margin-bottom:12px;line-height:1.6">
+            Some PS1 games require a BIOS file (e.g. <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-family:monospace">scph5501.bin</code> for US games).
+            Your BIOS file is never uploaded — it stays in your browser tab only.
+          </p>
+          <div class="bios-upload-row">
+            <label for="bios-input" class="btn btn-secondary" style="cursor:pointer;font-size:0.82rem;padding:7px 14px">
+              📁 Choose BIOS file
+            </label>
+            <input type="file" id="bios-input" accept=".bin" style="display:none" aria-label="BIOS file input" />
+            <div class="bios-status" id="bios-status">
+              <span>○</span> <span>No BIOS loaded</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game Library -->
+  <section class="games-section" id="library" aria-labelledby="library-heading">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title" id="library-heading">
+          My Games <span id="game-count">0</span>
+        </h2>
+        <button class="btn btn-ghost" style="font-size:0.8rem" onclick="document.getElementById('rom-file-input').click()" aria-label="Add another game">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add Game
+        </button>
+      </div>
+
+      <div id="games-grid" class="games-grid" role="list" aria-label="Game library">
+        <!-- Rendered by library.js -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── How It Works ──────────────────────────────────────────────── -->
+<section style="padding:60px 0 80px;position:relative;z-index:1;border-top:1px solid rgba(139,92,246,0.08)">
+  <div class="container">
+    <h2 style="text-align:center;font-size:1.6rem;margin-bottom:40px;font-family:'Outfit',sans-serif">How it works</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px">
+      <div style="padding:24px;border-radius:16px;background:rgba(13,13,30,0.7);border:1px solid rgba(139,92,246,0.12);text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:12px">📀</div>
+        <h3 style="font-size:1rem;margin-bottom:8px;font-family:'Outfit',sans-serif">1. Upload your ROM</h3>
+        <p style="font-size:0.82rem;color:#64748b;line-height:1.6">Drag &amp; drop or browse for a .bin, .cue, .iso, or .pbp file from your computer.</p>
+      </div>
+      <div style="padding:24px;border-radius:16px;background:rgba(13,13,30,0.7);border:1px solid rgba(34,211,238,0.12);text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:12px">▶️</div>
+        <h3 style="font-size:1rem;margin-bottom:8px;font-family:'Outfit',sans-serif">2. Click Play</h3>
+        <p style="font-size:0.82rem;color:#64748b;line-height:1.6">The PS1 emulator boots instantly using WebAssembly — no plugins, no downloads.</p>
+      </div>
+      <div style="padding:24px;border-radius:16px;background:rgba(13,13,30,0.7);border:1px solid rgba(244,114,182,0.12);text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:12px">🎮</div>
+        <h3 style="font-size:1rem;margin-bottom:8px;font-family:'Outfit',sans-serif">3. Connect &amp; play</h3>
+        <p style="font-size:0.82rem;color:#64748b;line-height:1.6">Plug in any USB/Bluetooth gamepad or use the on-screen touch controls.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<footer style="border-top:1px solid rgba(199,125,255,0.1);padding:32px;text-align:center;color:#64748b;font-size:0.8rem;position:relative;z-index:1;background:rgba(8,6,18,0.7);backdrop-filter:blur(10px)">
+  <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.1rem;color:#f8fafc;margin-bottom:6px;letter-spacing:0.04em">
+    NIKH,S STATION PS1
+  </div>
+  <p style="margin-bottom:8px;color:#94a3b8">
+    Retro 32-Bit Lounge • Twilight Ninja Aesthetic • Powered by <a href="https://emulatorjs.org" target="_blank" rel="noopener" style="color:#c77dff;text-decoration:underline">EmulatorJS</a> &amp; <a href="https://www.libretro.com" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:underline">pcsx_rearmed</a>
+  </p>
+  <div class="ps-shapes-accent" style="margin-top:6px;font-size:0.85rem">
+    <span class="ps-tri">△</span><span class="ps-cir">○</span><span class="ps-cro">✕</span><span class="ps-squ">□</span>
+  </div>
+</footer>
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container" aria-live="polite" role="status"></div>
+
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/library.js"></script>
+<script src="js/controls.js"></script>
+<script>
+  // ── Hero & Upload Zone Wiring ────────────────────────────────────
+  document.getElementById('hero-upload-btn')?.addEventListener('click', () => {
+    document.getElementById('rom-file-input')?.click();
+  });
+  document.getElementById('file-upload-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('rom-file-input')?.click();
+  });
+  document.getElementById('folder-upload-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('rom-folder-input')?.click();
+  });
+
+  // ── CRT Scanlines Toggle ─────────────────────────────────────────
+  const crtBtn = document.getElementById('btn-crt-toggle');
+  const crtText = document.getElementById('crt-toggle-text');
+  let crtOn = true;
+  crtBtn?.addEventListener('click', () => {
+    crtOn = !crtOn;
+    document.body.classList.toggle('scanlines-disabled', !crtOn);
+    crtBtn.classList.toggle('active', crtOn);
+    if (crtText) crtText.textContent = crtOn ? 'CRT: ON' : 'CRT: OFF';
+    if (typeof showToast === 'function') {
+      showToast(crtOn ? '📺 CRT Scanlines Activated' : '📺 CRT Scanlines Dimmed', 'info');
+    }
+  });
+
+  // ── Ambient Lofi Beats Synthesizer (Web Audio API) ───────────────
+  let lofiCtx = null;
+  let lofiPlaying = false;
+  let lofiTimer = null;
+
+  const LOFI_CHORDS = [
+    [155.56, 196.00, 233.08, 293.66], // Eb maj7
+    [130.81, 155.56, 196.00, 233.08], // C min7
+    [174.61, 207.65, 261.63, 311.13], // F min7
+    [116.54, 146.83, 174.61, 207.65, 261.63] // Bb 9
+  ];
+  let chordIdx = 0;
+
+  function playLofiChord() {
+    if (!lofiPlaying || !lofiCtx) return;
+    const now = lofiCtx.currentTime;
+    const chord = LOFI_CHORDS[chordIdx];
+    chordIdx = (chordIdx + 1) % LOFI_CHORDS.length;
+
+    chord.forEach((freq, i) => {
+      const osc = lofiCtx.createOscillator();
+      const gain = lofiCtx.createGain();
+      const filter = lofiCtx.createBiquadFilter();
+
+      osc.type = i === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      // Lowpass mellow filter
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(520, now);
+      filter.Q.setValueAtTime(2.0, now);
+
+      // Soft envelope
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.045, now + 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(lofiCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 2.9);
+    });
+
+    lofiTimer = setTimeout(playLofiChord, 2600);
+  }
+
+  const lofiBtn = document.getElementById('btn-lofi-radio');
+  const lofiText = document.getElementById('lofi-radio-text');
+
+  lofiBtn?.addEventListener('click', () => {
+    if (!lofiPlaying) {
+      if (!lofiCtx) {
+        lofiCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (lofiCtx.state === 'suspended') {
+        lofiCtx.resume();
+      }
+      lofiPlaying = true;
+      lofiBtn.classList.add('playing');
+      if (lofiText) lofiText.textContent = 'Lofi: Playing';
+      playLofiChord();
+      if (typeof showToast === 'function') {
+        showToast('📼 Lo-Fi Chill Beats Started ~ Relax and Play', 'success');
+      }
+    } else {
+      lofiPlaying = false;
+      clearTimeout(lofiTimer);
+      lofiBtn.classList.remove('playing');
+      if (lofiText) lofiText.textContent = 'Lofi Beats';
+      if (typeof showToast === 'function') {
+        showToast('📼 Lo-Fi Beats Paused', 'info');
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

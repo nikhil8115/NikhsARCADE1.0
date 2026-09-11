@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NIKH,S STATION PS1 — Playing</title>
+  <meta name="description" content="Playing on NIKH,S STATION PS1 with full controller and touch control support." />
+
+  <!-- Cross-Origin Isolation Service Worker for GitHub Pages (enables SharedArrayBuffer & WebAssembly) -->
+  <script src="coi-serviceworker.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/emulator.css" />
+</head>
+<body class="emu-page">
+
+<!-- ── Mini Navigation ──────────────────────────────────────────── -->
+<nav class="emu-nav" role="navigation" aria-label="Emulator navigation">
+  <div class="emu-nav-left">
+    <a href="index.html" class="emu-back-btn" aria-label="Back to game library">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      NIKH,S STATION
+    </a>
+    <div class="emu-game-title" id="game-title" aria-label="Current game">Loading...</div>
+  </div>
+  <div class="emu-nav-right">
+    <div id="controller-badge" class="controller-badge" aria-live="polite" aria-label="Controller status">
+      <span class="dot"></span>
+      <span>🎮 No Controller</span>
+    </div>
+    <button class="btn btn-ghost" id="btn-settings" style="padding:6px 10px" aria-label="Open settings">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Emulator Wrapper ──────────────────────────────────────────── -->
+<div class="emu-wrapper">
+
+  <!-- Game Canvas -->
+  <div id="game-container" role="main" aria-label="Game screen">
+    <!-- Loading overlay -->
+    <div class="emu-loading" id="emu-loading" aria-live="polite" aria-label="Loading game">
+      <div class="emu-spinner" role="status" aria-label="Loading spinner"></div>
+      <div class="emu-loading-text">Loading game...</div>
+      <div class="emu-loading-sub" style="font-size:0.75rem;color:#475569;margin-top:-8px">Fetching emulator cores from CDN</div>
+    </div>
+    <!-- EmulatorJS injects its canvas here -->
+  </div>
+
+  <!-- Floating Toolbar -->
+  <div class="emu-toolbar" role="toolbar" aria-label="Emulator controls">
+
+    <button class="toolbar-btn" id="btn-pause" aria-label="Pause or resume game">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <rect x="6" y="4" width="4" height="16"/>
+        <rect x="14" y="4" width="4" height="16"/>
+      </svg>
+      <span>Pause</span>
+    </button>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <div class="state-slot" aria-label="Save state slot selector">
+      <label for="state-slot" style="font-size:0.75rem;color:#64748b;white-space:nowrap">Slot:</label>
+      <select id="state-slot" aria-label="State slot number">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
+
+    <button class="toolbar-btn" id="btn-save-state" aria-label="Save state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+      <span>Save</span>
+    </button>
+
+    <button class="toolbar-btn" id="btn-load-state" aria-label="Load state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <span>Load</span>
+    </button>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <button class="toolbar-btn" id="btn-screenshot" aria-label="Take screenshot">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      <span>Screenshot</span>
+    </button>
+
+    <button class="toolbar-btn" id="toggle-controls-btn" aria-label="Toggle on-screen controls" aria-pressed="false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="2" y="6" width="20" height="12" rx="6"/>
+        <circle cx="8" cy="12" r="2" fill="currentColor"/>
+        <line x1="16" y1="10" x2="16" y2="14"/>
+        <line x1="14" y1="12" x2="18" y2="12"/>
+      </svg>
+      <span>Controls</span>
+    </button>
+
+    <button class="toolbar-btn" id="btn-full-window" aria-label="Toggle full window mode" title="Expand game to fill the browser window">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="2" y="3" width="20" height="18" rx="2"/>
+        <line x1="2" y1="8" x2="22" y2="8"/>
+      </svg>
+      <span>Full Window</span>
+    </button>
+
+    <button class="toolbar-btn" id="btn-fullscreen" aria-label="Toggle fullscreen" title="Toggle Fullscreen">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+        <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+        <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+        <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+      </svg>
+      <span>Fullscreen</span>
+    </button>
+  </div>
+
+  <!-- ── On-Screen Android Touch Gamepad ──────────────────────── -->
+  <div class="onscreen-controls" id="onscreen-controls" role="group" aria-label="Android On-Screen Gamepad">
+
+    <!-- Quick action bar (Analog toggle, Layout, Haptics, Opacity) -->
+    <div class="gamepad-quick-bar">
+      <button class="gamepad-bar-btn" id="btn-toggle-analog" title="Toggle Analog Stick Mode">
+        <span class="analog-led" id="analog-led"></span>
+        <span id="analog-mode-text">ANALOG</span>
+      </button>
+      <button class="gamepad-bar-btn" id="btn-toggle-layout" title="Toggle Overlay / Docked Mode">
+        <span id="layout-icon">📱</span>
+        <span id="layout-mode-text">Overlay</span>
+      </button>
+      <button class="gamepad-bar-btn" id="btn-toggle-haptics" title="Toggle Touch Vibration">
+        <span>📳</span>
+        <span id="haptics-text">Haptics: ON</span>
+      </button>
+      <button class="gamepad-bar-btn" id="btn-cycle-opacity" title="Adjust Gamepad Opacity">
+        <span>👁️</span>
+        <span id="opacity-text">Opacity: 85%</span>
+      </button>
+    </div>
+
+    <!-- Main Gamepad Cluster -->
+    <div class="gamepad-main-cluster">
+
+      <!-- Left Cluster: Shoulders + D-Pad / Analog Stick -->
+      <div class="gamepad-cluster gamepad-left">
+        <!-- Left Shoulders (L1, L2) -->
+        <div class="gamepad-shoulders left-shoulders">
+          <button class="gamepad-btn shoulder-btn l2-btn" data-btn="l2" aria-label="L2 Button">
+            <span>L2</span>
+          </button>
+          <button class="gamepad-btn shoulder-btn l1-btn" data-btn="l1" aria-label="L1 Button">
+            <span>L1</span>
+          </button>
+        </div>
+
+        <!-- D-Pad Control -->
+        <div class="dpad-wrapper" id="dpad-wrapper">
+          <div class="dpad-disc" id="dpad-disc" role="group" aria-label="Directional Pad">
+            <div class="dpad-cross-shape"></div>
+            <button class="gamepad-btn dpad-btn dpad-up" data-btn="dpad-up" aria-label="D-Pad Up">
+              <svg viewBox="0 0 24 24"><path d="M12 4l-6.5 7.5h13z" fill="currentColor"/></svg>
+            </button>
+            <button class="gamepad-btn dpad-btn dpad-left" data-btn="dpad-left" aria-label="D-Pad Left">
+              <svg viewBox="0 0 24 24"><path d="M4 12l7.5-6.5v13z" fill="currentColor"/></svg>
+            </button>
+            <div class="dpad-center-hub"></div>
+            <button class="gamepad-btn dpad-btn dpad-right" data-btn="dpad-right" aria-label="D-Pad Right">
+              <svg viewBox="0 0 24 24"><path d="M20 12l-7.5-6.5v13z" fill="currentColor"/></svg>
+            </button>
+            <button class="gamepad-btn dpad-btn dpad-down" data-btn="dpad-down" aria-label="D-Pad Down">
+              <svg viewBox="0 0 24 24"><path d="M12 20l-6.5-7.5h13z" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Virtual Analog Thumbstick (toggled via ANALOG button) -->
+        <div class="analog-stick-wrapper" id="analog-stick-wrapper" style="display:none">
+          <div class="analog-base" id="analog-base" aria-label="Analog Thumbstick">
+            <div class="analog-knob" id="analog-knob">
+              <div class="analog-inner-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Cluster: Select, Start, DualShock Logo -->
+      <div class="gamepad-cluster gamepad-center">
+        <div class="center-buttons-row">
+          <button class="gamepad-btn center-pill-btn" data-btn="select" aria-label="Select Button">
+            <span>SELECT</span>
+          </button>
+          <button class="gamepad-btn center-pill-btn" data-btn="start" aria-label="Start Button">
+            <span>START</span>
+          </button>
+        </div>
+        <div class="ps-center-badge">
+          <span class="ps-logo-text">PS1</span>
+        </div>
+      </div>
+
+      <!-- Right Cluster: Shoulders + Face Buttons + Combos -->
+      <div class="gamepad-cluster gamepad-right">
+        <!-- Right Shoulders (R1, R2) -->
+        <div class="gamepad-shoulders right-shoulders">
+          <button class="gamepad-btn shoulder-btn r1-btn" data-btn="r1" aria-label="R1 Button">
+            <span>R1</span>
+          </button>
+          <button class="gamepad-btn shoulder-btn r2-btn" data-btn="r2" aria-label="R2 Button">
+            <span>R2</span>
+          </button>
+        </div>
+
+        <!-- PlayStation Face Buttons Diamond -->
+        <div class="face-buttons-wrapper">
+          <div class="face-buttons-diamond" role="group" aria-label="PlayStation Action Buttons">
+            <!-- Triangle (Top) -->
+            <button class="gamepad-btn face-btn triangle-btn" data-btn="triangle" aria-label="Triangle">
+              <span class="ps-glyph triangle-glyph">△</span>
+            </button>
+            <!-- Square (Left) -->
+            <button class="gamepad-btn face-btn square-btn" data-btn="square" aria-label="Square">
+              <span class="ps-glyph square-glyph">□</span>
+            </button>
+            <!-- Circle (Right) -->
+            <button class="gamepad-btn face-btn circle-btn" data-btn="circle" aria-label="Circle">
+              <span class="ps-glyph circle-glyph">○</span>
+            </button>
+            <!-- Cross (Bottom) -->
+            <button class="gamepad-btn face-btn cross-btn" data-btn="cross" aria-label="Cross">
+              <span class="ps-glyph cross-glyph">✕</span>
+            </button>
+          </div>
+
+          <!-- Quick Combo Buttons (Tekken 3 friendly: 1+2 & 3+4) -->
+          <div class="combo-buttons-row">
+            <button class="gamepad-btn combo-btn" data-combo="square,triangle" title="Press Square + Triangle (1+2)">
+              <span>1+2</span>
+            </button>
+            <button class="gamepad-btn combo-btn" data-combo="cross,circle" title="Press Cross + Circle (3+4)">
+              <span>3+4</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    <p class="analog-hint">📱 Android Touch Gamepad active • Slide thumb on D-pad for diagonals • Multi-touch enabled</p>
+  </div><!-- end onscreen-controls -->
+
+</div><!-- end emu-wrapper -->
+
+<!-- ── Settings Panel ───────────────────────────────────────────── -->
+<div class="settings-backdrop" id="settings-backdrop" role="presentation"></div>
+<aside class="settings-panel" id="settings-panel" role="complementary" aria-label="Settings">
+  <div class="settings-header">
+    <h3>Settings</h3>
+    <button class="btn btn-ghost" id="settings-close" style="padding:4px 8px" aria-label="Close settings">✕</button>
+  </div>
+  <div class="settings-body">
+
+    <div class="settings-group">
+      <h4>Display</h4>
+      <div class="settings-row">
+        <span class="settings-label">Scanlines</span>
+        <div class="toggle-switch" id="toggle-scanlines" role="switch" aria-checked="false" aria-label="Toggle scanlines" tabindex="0"></div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Integer Scaling</span>
+        <div class="toggle-switch on" id="toggle-integer-scale" role="switch" aria-checked="true" aria-label="Toggle integer scaling" tabindex="0"></div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Bilinear Filter</span>
+        <div class="toggle-switch" id="toggle-bilinear" role="switch" aria-checked="false" aria-label="Toggle bilinear filter" tabindex="0"></div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h4>Audio</h4>
+      <div class="settings-row">
+        <span class="settings-label">Mute</span>
+        <div class="toggle-switch" id="toggle-mute" role="switch" aria-checked="false" aria-label="Toggle mute" tabindex="0"></div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h4>Controls</h4>
+      <div class="settings-row">
+        <span class="settings-label">Show on-screen controls</span>
+        <div class="toggle-switch" id="toggle-onscreen" role="switch" aria-checked="false" aria-label="Toggle on-screen controls" tabindex="0"
+          onclick="toggleOnscreenControls();this.classList.toggle('on')"></div>
+      </div>
+    </div>
+
+    <div class="settings-group" style="margin-top:8px">
+      <h4>Emulator Info</h4>
+      <div style="font-size:0.78rem;color:#475569;line-height:1.8">
+        <div>Core: <span style="color:#94a3b8">pcsx_rearmed (PS1)</span></div>
+        <div>Engine: <span style="color:#94a3b8">EmulatorJS (WebAssembly)</span></div>
+        <div>CDN: <span style="color:#94a3b8">emulatorjs.org/stable</span></div>
+      </div>
+    </div>
+
+    <a href="index.html" class="btn btn-secondary" style="margin-top:12px;width:100%;justify-content:center">
+      ← Back to Library
+    </a>
+  </div>
+</aside>
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container" aria-live="polite" role="status"></div>
+
+<!-- Scripts — emulator.js sets config vars, then dynamically injects loader.js -->
+<script src="js/config.js"></script>
+<script src="js/controls.js"></script>
+<script src="js/emulator.js"></script>
+
+</body>
+</html>

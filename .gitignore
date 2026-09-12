@@ -15,8 +15,6 @@ Desktop.ini
 *.tmp
 *.bak
 
-# Large Game ROMs (Ignored to prevent GitHub 100MB file limit rejection)
-# Upload these 4 files to GitHub Releases (tag v1.0.0) for 100% free high-speed CDN delivery!
-# If you prefer using Git LFS instead, comment out the line below.
-games/*.chd
+# Large Game ROMs tracked via Git LFS
+# games/*.chd
 

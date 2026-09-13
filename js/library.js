@@ -320,6 +320,7 @@ function launchGame(id) {
       sessionStorage.setItem('ps1_current_game', JSON.stringify({
         id:              builtin.id,
         name:            builtin.name,
+        fileName:        builtin.fileName,
         blobUrl:         resolvedUrl,
         ext:             builtin.ext,
         isMultiBin:      builtin.isMultiBin,
@@ -399,20 +400,38 @@ function promptOnlineGameLaunch(builtin) {
         <div style="background:rgba(157,78,221,0.12);border:1px solid rgba(199,125,255,0.3);border-radius:14px;padding:14px">
           <div style="display:flex;gap:10px;align-items:flex-start">
             <span style="font-size:1.4rem">🕹️</span>
-            <div style="font-size:0.85rem;color:#cbd5e1;line-height:1.5">
-              <strong>Running online on GitHub Pages</strong><br/>
-              PlayStation 1 ROMs are 300MB–460MB each and cannot be stored directly in GitHub's repository without quota limits.
-              Select your local <code>${builtin.fileName}</code> to start playing right away in your browser at full 60 FPS!
+            <div style="font-size:0.85rem;color:#cbd5e1;line-height:1.6">
+              <strong style="color:#c77dff">📦 How to Play Online</strong><br/>
+              PS1 ROMs are 300–460 MB — too large to store on GitHub.<br/>
+              <strong>Step 1:</strong> Download or locate your <code>${builtin.fileName}</code><br/>
+              <strong>Step 2:</strong> Click "Play from PC" and select that file<br/>
+              <strong>Step 3:</strong> Game loads instantly at 60 FPS!
             </div>
           </div>
         </div>
 
+        ${(() => {
+          const hint = typeof window.getGameDownloadHint === 'function'
+            ? window.getGameDownloadHint(builtin.fileName)
+            : null;
+          return hint ? `
+        <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.3);border-radius:12px;padding:12px 16px">
+          <div style="font-size:0.85rem;color:#cbd5e1;line-height:1.6">
+            <strong style="color:#38bdf8">☁️ Cloud Download Available</strong><br/>
+            Download the file, then click "Play from PC" below to load it.
+          </div>
+          <a href="${hint}" download style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 16px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);border-radius:8px;color:#7dd3fc;text-decoration:none;font-size:0.82rem">
+            ⬇️ Download ${builtin.name} (.chd)
+          </a>
+        </div>` : '';
+        })()}
+
         <button id="btn-modal-pick-rom" class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;justify-content:center;gap:10px">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          Select ${builtin.fileName} & Play
+          📁 Play from PC — Select ${builtin.fileName}
         </button>
         <div style="text-align:center;font-size:0.75rem;color:#64748b;margin-top:-8px">
-          Located on your PC in: <code>games/${builtin.fileName}</code>
+          File should be named: <code>${builtin.fileName}</code>
         </div>
 
         <input type="file" id="modal-file-input" accept=".bin,.cue,.iso,.pbp,.chd,.img,.mdf" style="display:none" />
@@ -424,8 +443,8 @@ function promptOnlineGameLaunch(builtin) {
         </div>
 
         <div style="font-size:0.8rem;color:#94a3b8;background:rgba(0,0,0,0.3);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);line-height:1.5">
-          <div style="font-weight:600;color:#e2e8f0;margin-bottom:4px">💻 Play 100% Offline (Included Local Server):</div>
-          Run <code>node server.js</code> in your project directory and open <code>http://localhost:3000</code>. All games load automatically.
+          <div style="font-weight:600;color:#e2e8f0;margin-bottom:4px">💻 Play 100% Offline (Local Server):</div>
+          Clone repo → put real .chd files in <code>games/</code> → run <code>node server.js</code> → open <code>http://localhost:3000</code>
         </div>
       </div>
     </div>
@@ -455,6 +474,7 @@ function promptOnlineGameLaunch(builtin) {
       sessionStorage.setItem('ps1_current_game', JSON.stringify({
         id: builtin.id,
         name: builtin.name,
+        fileName: builtin.fileName,
         blobUrl: blobUrl,
         ext: file.name.split('.').pop().toLowerCase(),
         isMultiBin: false,

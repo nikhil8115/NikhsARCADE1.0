@@ -12,15 +12,19 @@ try {
 
 function isPlayableUrl(url) {
   if (!url) return false;
+  // Blob URLs from local file selection always work
   if (url.startsWith('blob:')) return true;
+  // Local development server: all URLs work
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:';
   if (isLocal) return true;
-  if (typeof window.hasCustomRomSource === 'function' && window.hasCustomRomSource()) return true;
-  // GitHub release URLs and raw URLs fail with CORS/404 Network Error
-  if (url.includes('github.com') && (url.includes('/releases/') || url.includes('/raw/'))) return false;
-  // Relative paths when hosted on GitHub Pages are only 134-byte pointer files
-  if (window.location.hostname.endsWith('github.io') && (!url.startsWith('http') || url.includes('/games/'))) return false;
-  return url.startsWith('http://') || url.startsWith('https://');
+  // GitHub raw/release URLs fail with CORS - always reject
+  if (url.includes('github.com') && (url.includes('/releases/') || url.includes('/raw/') || url.includes('raw.githubusercontent.com'))) return false;
+  // Any external https URL that is NOT a GitHub raw URL is assumed valid (CDN, Archive, R2, etc.)
+  if (url.startsWith('https://') && !url.includes('github.io/') && !url.includes('raw.githubusercontent.com')) return true;
+  if (url.startsWith('http://')) return true;
+  // Relative paths on GitHub Pages point to 134-byte placeholder stubs - reject
+  if (window.location.hostname.endsWith('github.io') && !url.startsWith('http')) return false;
+  return false;
 }
 
 const canAutoLaunch = Boolean(gameData && isPlayableUrl(gameData.blobUrl));
@@ -34,24 +38,49 @@ if (!canAutoLaunch) {
     const container = document.getElementById('game-container');
     if (container) {
       const name = gameData ? gameData.name : 'PlayStation Game';
+      const fileName = gameData ? (gameData.fileName || (gameData.id || '').replace('builtin_', '') + '.chd') : null;
+
+      // Check if there's a CDN download hint for this game
+      let downloadHint = null;
+      if (fileName && typeof window.getGameDownloadHint === 'function') {
+        downloadHint = window.getGameDownloadHint(fileName);
+      }
+
+      const downloadSection = downloadHint ? `
+        <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.3);border-radius:12px;padding:14px 18px;max-width:460px;text-align:left;font-size:0.8rem;color:#cbd5e1;line-height:1.7">
+          <strong style="color:#38bdf8">☁️ Cloud Download Available</strong><br/>
+          This game is hosted online. Click below to download it, then use "Play from PC" to load it.<br/>
+          <a href="${downloadHint}" download style="display:inline-block;margin-top:8px;padding:6px 14px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);border-radius:8px;color:#7dd3fc;text-decoration:none;font-size:0.8rem">
+            ⬇️ Download ${name} (.chd)
+          </a>
+        </div>` : '';
+
       container.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;font-family:'Outfit',sans-serif;color:#94a3b8;text-align:center;padding:24px">
-          <div style="font-size:3.5rem">🕹️</div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;font-family:'Outfit',sans-serif;color:#94a3b8;text-align:center;padding:24px;overflow-y:auto">
+          <div style="font-size:3rem">🕹️</div>
           <div>
-            <h2 style="color:#f1f5f9;font-size:1.5rem;margin-bottom:6px">${name}</h2>
-            <p style="font-size:0.85rem;color:#c77dff;font-family:'Space Mono',monospace">PlayStation 1 · 32-Bit</p>
+            <h2 style="color:#f1f5f9;font-size:1.4rem;margin-bottom:4px">${name}</h2>
+            <p style="font-size:0.82rem;color:#c77dff;font-family:'Space Mono',monospace">PlayStation 1 · 32-Bit</p>
           </div>
-          <div style="background:rgba(157,78,221,0.15);border:1px solid rgba(199,125,255,0.3);border-radius:14px;padding:16px;max-width:460px;text-align:left;font-size:0.85rem;color:#cbd5e1;line-height:1.6">
-            <strong>💡 Online GitHub Pages Mode</strong><br/>
-            Because PS1 ROMs are 300MB–460MB each, they cannot be stored directly inside GitHub's static repository.<br/>
-            Select your local <strong>${name} (.chd or .bin)</strong> file to play immediately in your browser at 60 FPS!
+
+          <div style="background:rgba(157,78,221,0.12);border:1px solid rgba(199,125,255,0.28);border-radius:14px;padding:14px 18px;max-width:460px;text-align:left;font-size:0.82rem;color:#cbd5e1;line-height:1.7">
+            <strong style="color:#c77dff">📦 How to Play Online</strong><br/>
+            PS1 ROMs are 300–460 MB — too large to store on GitHub.<br/>
+            <strong>Step 1:</strong> Download or locate your <strong>${name} .chd</strong> file<br/>
+            <strong>Step 2:</strong> Click "📁 Play from PC" and select that file<br/>
+            <strong>Step 3:</strong> Game loads instantly in your browser at 60 FPS!
           </div>
-          <button id="btn-play-select-rom" class="btn btn-primary" style="padding:14px 28px;font-size:1rem;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#9d4edd,#7b2cbf);color:white;border:none;display:inline-flex;align-items:center;gap:10px;font-weight:600;box-shadow:0 8px 24px rgba(157,78,221,0.4)">
-            📁 Select ${name} file from PC & Play
+
+          ${downloadSection}
+
+          <button id="btn-play-select-rom" style="padding:13px 26px;font-size:0.95rem;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#9d4edd,#7b2cbf);color:white;border:none;display:inline-flex;align-items:center;gap:10px;font-weight:600;box-shadow:0 8px 24px rgba(157,78,221,0.4)">
+            📁 Play from PC — Select ${name} file
           </button>
           <input type="file" id="play-rom-input" accept=".bin,.cue,.iso,.pbp,.chd,.img,.mdf" style="display:none" />
-          <div style="margin-top:8px">
-            <a href="index.html" style="padding:8px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#cbd5e1;border-radius:10px;font-size:0.85rem;text-decoration:none">← Back to Arcade Library</a>
+
+          <div style="margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+            <a href="index.html" style="padding:7px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#cbd5e1;border-radius:10px;font-size:0.82rem;text-decoration:none">← Back to Arcade</a>
+            <a href="https://archive.org" target="_blank" rel="noopener" style="padding:7px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);color:#94a3b8;border-radius:10px;font-size:0.82rem;text-decoration:none">🌐 Internet Archive</a>
           </div>
         </div>`;
 

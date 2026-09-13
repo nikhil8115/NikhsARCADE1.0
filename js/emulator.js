@@ -10,43 +10,79 @@ try {
   if (raw) gameData = JSON.parse(raw);
 } catch {}
 
-// ── Redirect if no game ──────────────────────────────────────────
-if (!gameData || !gameData.blobUrl) {
-  // Show a friendly message instead of crashing
+function isPlayableUrl(url) {
+  if (!url) return false;
+  if (url.startsWith('blob:')) return true;
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:';
+  if (isLocal) return true;
+  if (typeof window.hasCustomRomSource === 'function' && window.hasCustomRomSource()) return true;
+  // GitHub release URLs and raw URLs fail with CORS/404 Network Error
+  if (url.includes('github.com') && (url.includes('/releases/') || url.includes('/raw/'))) return false;
+  // Relative paths when hosted on GitHub Pages are only 134-byte pointer files
+  if (window.location.hostname.endsWith('github.io') && (!url.startsWith('http') || url.includes('/games/'))) return false;
+  return url.startsWith('http://') || url.startsWith('https://');
+}
+
+const canAutoLaunch = Boolean(gameData && isPlayableUrl(gameData.blobUrl));
+
+// ── Prompt for ROM if game URL is not playable online or missing ─
+if (!canAutoLaunch) {
   document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('emu-loading');
+    if (overlay) overlay.style.display = 'none';
+
     const container = document.getElementById('game-container');
     if (container) {
+      const name = gameData ? gameData.name : 'PlayStation Game';
       container.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;font-family:'Outfit',sans-serif;color:#94a3b8;text-align:center;padding:20px">
-          <div style="font-size:3rem">🕹️</div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;font-family:'Outfit',sans-serif;color:#94a3b8;text-align:center;padding:24px">
+          <div style="font-size:3.5rem">🕹️</div>
           <div>
-            <h2 style="color:#f1f5f9;margin-bottom:8px">No game loaded</h2>
-            <p style="font-size:0.9rem">Go back to the library and select a game to play.</p>
+            <h2 style="color:#f1f5f9;font-size:1.5rem;margin-bottom:6px">${name}</h2>
+            <p style="font-size:0.85rem;color:#c77dff;font-family:'Space Mono',monospace">PlayStation 1 · 32-Bit</p>
           </div>
-          <a href="index.html" style="padding:10px 24px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;border-radius:12px;font-weight:600;text-decoration:none">← Back to Library</a>
+          <div style="background:rgba(157,78,221,0.15);border:1px solid rgba(199,125,255,0.3);border-radius:14px;padding:16px;max-width:460px;text-align:left;font-size:0.85rem;color:#cbd5e1;line-height:1.6">
+            <strong>💡 Online GitHub Pages Mode</strong><br/>
+            Because PS1 ROMs are 300MB–460MB each, they cannot be stored directly inside GitHub's static repository.<br/>
+            Select your local <strong>${name} (.chd or .bin)</strong> file to play immediately in your browser at 60 FPS!
+          </div>
+          <button id="btn-play-select-rom" class="btn btn-primary" style="padding:14px 28px;font-size:1rem;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#9d4edd,#7b2cbf);color:white;border:none;display:inline-flex;align-items:center;gap:10px;font-weight:600;box-shadow:0 8px 24px rgba(157,78,221,0.4)">
+            📁 Select ${name} file from PC & Play
+          </button>
+          <input type="file" id="play-rom-input" accept=".bin,.cue,.iso,.pbp,.chd,.img,.mdf" style="display:none" />
+          <div style="margin-top:8px">
+            <a href="index.html" style="padding:8px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#cbd5e1;border-radius:10px;font-size:0.85rem;text-decoration:none">← Back to Arcade Library</a>
+          </div>
         </div>`;
+
+      const btn = container.querySelector('#btn-play-select-rom');
+      const input = container.querySelector('#play-rom-input');
+      if (btn && input) {
+        btn.addEventListener('click', () => input.click());
+        input.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const blobUrl = URL.createObjectURL(file);
+          sessionStorage.setItem('ps1_current_game', JSON.stringify({
+            ...(gameData || {}),
+            name: (gameData && gameData.name) || file.name.replace(/\.[^/.]+$/, ''),
+            blobUrl: blobUrl,
+            ext: file.name.split('.').pop().toLowerCase(),
+            isMultiBin: false,
+            additionalFiles: {}
+          }));
+          window.location.reload();
+        });
+      }
     }
   });
 }
 
 // ── EmulatorJS Config ────────────────────────────────────────────
-if (gameData) {
-
-  /**
-   * Build an absolute URL from a given url string.
-   * - blob: URLs → returned as-is (already absolute)
-   * - http/https URLs → returned as-is
-   * - /relative paths → prepend window.location.origin (e.g. http://localhost:3000)
-   *
-   * EmulatorJS CDN script resolves .bin files relative to EJS_gameUrl.
-   * If EJS_gameUrl is relative, the CDN script resolves it from cdn.emulatorjs.org
-   * instead of localhost, so the .bin fetches 404 and only the BIOS shell opens.
-   */
+if (canAutoLaunch) {
   function toAbsoluteUrl(url) {
     if (!url) return url;
     if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) return url;
-    // Resolve relative URL against current page location
-    // This correctly resolves both on localhost and inside GitHub Pages repository subpaths
     try {
       return new URL(url, window.location.href).href;
     } catch {
@@ -319,13 +355,27 @@ document.addEventListener('DOMContentLoaded', () => {
     sw.addEventListener('click', () => sw.classList.toggle('on'));
   });
 
-  // Inject EmulatorJS script dynamically after config vars are set
-  if (gameData) {
+  // Inject EmulatorJS script dynamically ONLY when the ROM URL is valid and playable
+  if (canAutoLaunch) {
     const script = document.createElement('script');
     script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
     script.crossOrigin = 'anonymous';
     script.onerror = () => showErrorState('Failed to load EmulatorJS from CDN. Check your internet connection.');
     document.body.appendChild(script);
+
+    // Watch for EmulatorJS internal "Network Error" or load failures at runtime
+    const runtimeWatcher = setInterval(() => {
+      const errEl = document.querySelector('.ejs_error_text, #game-container .ejs_error_text');
+      if (errEl) {
+        const text = (errEl.innerText || errEl.textContent || '').toLowerCase();
+        if (text.includes('network error') || text.includes('failed to start') || text.includes('error')) {
+          clearInterval(runtimeWatcher);
+          showErrorState('Network Error: ROM file could not be downloaded over the network.');
+        }
+      }
+    }, 500);
+
+    setTimeout(() => clearInterval(runtimeWatcher), 60000);
   }
 });
 

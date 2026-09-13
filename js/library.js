@@ -314,18 +314,27 @@ function launchGame(id) {
   if (builtin) {
     builtin.lastPlayed = Date.now();
     const resolvedUrl = resolveBuiltinGameUrl(builtin);
-    sessionStorage.setItem('ps1_current_game', JSON.stringify({
-      id:              builtin.id,
-      name:            builtin.name,
-      blobUrl:         resolvedUrl,
-      ext:             builtin.ext,
-      isMultiBin:      builtin.isMultiBin,
-      additionalFiles: builtin.additionalFiles,
-      bios: biosBlob ? URL.createObjectURL(biosBlob) : null,
-    }));
-    window.location.href = 'play.html';
+
+    // If URL is resolved (localhost or custom CDN configured), launch immediately
+    if (resolvedUrl) {
+      sessionStorage.setItem('ps1_current_game', JSON.stringify({
+        id:              builtin.id,
+        name:            builtin.name,
+        blobUrl:         resolvedUrl,
+        ext:             builtin.ext,
+        isMultiBin:      builtin.isMultiBin,
+        additionalFiles: builtin.additionalFiles,
+        bios: biosBlob ? URL.createObjectURL(biosBlob) : null,
+      }));
+      window.location.href = 'play.html';
+      return;
+    }
+
+    // Online GitHub Pages without external CDN: prompt user to pick local ROM for instant play
+    promptOnlineGameLaunch(builtin);
     return;
   }
+
 
   // ── User-uploaded game ─────────────────────────────────────────
   const entry = library.find(g => g.id === id);
@@ -361,6 +370,100 @@ function launchGame(id) {
   }));
 
   window.location.href = 'play.html';
+}
+
+// ── Online Game Launch Prompt Modal ──────────────────────────────
+function promptOnlineGameLaunch(builtin) {
+  // Remove existing modal if any
+  const oldModal = document.getElementById('online-launch-modal');
+  if (oldModal) oldModal.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'online-modal-backdrop';
+  backdrop.id = 'online-launch-modal';
+
+  backdrop.innerHTML = `
+    <div class="online-modal jewel-case-card" role="dialog" aria-modal="true" aria-labelledby="modal-game-title">
+      <div class="online-modal-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:2.2rem">${gameEmoji(builtin.name)}</span>
+          <div>
+            <h3 id="modal-game-title" style="color:#f8fafc;font-family:'Outfit',sans-serif;font-size:1.3rem;margin:0">${builtin.name}</h3>
+            <span style="font-size:0.8rem;color:#c77dff;font-family:'Space Mono',monospace">${formatBytes(builtin.size)} · ${builtin.ext.toUpperCase()}</span>
+          </div>
+        </div>
+        <button class="online-modal-close" id="btn-close-launch-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:rgba(157,78,221,0.12);border:1px solid rgba(199,125,255,0.3);border-radius:14px;padding:14px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:1.4rem">🕹️</span>
+            <div style="font-size:0.85rem;color:#cbd5e1;line-height:1.5">
+              <strong>Running online on GitHub Pages</strong><br/>
+              PlayStation 1 ROMs are 300MB–460MB each and cannot be stored directly in GitHub's repository without quota limits.
+              Select your local <code>${builtin.fileName}</code> to start playing right away in your browser at full 60 FPS!
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-modal-pick-rom" class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;justify-content:center;gap:10px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Select ${builtin.fileName} & Play
+        </button>
+        <div style="text-align:center;font-size:0.75rem;color:#64748b;margin-top:-8px">
+          Located on your PC in: <code>games/${builtin.fileName}</code>
+        </div>
+
+        <input type="file" id="modal-file-input" accept=".bin,.cue,.iso,.pbp,.chd,.img,.mdf" style="display:none" />
+
+        <div style="display:flex;align-items:center;gap:10px;margin:2px 0">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+          <span style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Other ways to play</span>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+        </div>
+
+        <div style="font-size:0.8rem;color:#94a3b8;background:rgba(0,0,0,0.3);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);line-height:1.5">
+          <div style="font-weight:600;color:#e2e8f0;margin-bottom:4px">💻 Play 100% Offline (Included Local Server):</div>
+          Run <code>node server.js</code> in your project directory and open <code>http://localhost:3000</code>. All games load automatically.
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+
+  // Close actions
+  const closeBtn = backdrop.querySelector('#btn-close-launch-modal');
+  if (closeBtn) closeBtn.addEventListener('click', () => backdrop.remove());
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) backdrop.remove();
+  });
+
+  // Pick file action
+  const pickBtn = backdrop.querySelector('#btn-modal-pick-rom');
+  const fileInput = backdrop.querySelector('#modal-file-input');
+
+  if (pickBtn && fileInput) {
+    pickBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const blobUrl = URL.createObjectURL(file);
+      sessionStorage.setItem('ps1_current_game', JSON.stringify({
+        id: builtin.id,
+        name: builtin.name,
+        blobUrl: blobUrl,
+        ext: file.name.split('.').pop().toLowerCase(),
+        isMultiBin: false,
+        additionalFiles: {},
+        bios: biosBlob ? URL.createObjectURL(biosBlob) : null,
+      }));
+      window.location.href = 'play.html';
+    });
+  }
 }
 
 // ── Render ───────────────────────────────────────────────────────
